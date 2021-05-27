@@ -6,7 +6,7 @@ def generate_syllables(consonants, vowels):
             result.append(c + v + "\n")
     return ''.join(result)
 
-c_list = ["g", "n", "d", "r", "m", "b", "s", "0", "j", "ch", "k", "t", "p", "h"]
+c_list = ["g", "n", "d", "r", "m", "b", "s", "", "j", "ch", "k", "t", "p", "h"]
 v_list = ["a", "ya", "eo", "yeo", "o", "yo", "u", "yu", "eu", "i", "ae"]
 
 #print(generate_syllables(c_list, v_list))
