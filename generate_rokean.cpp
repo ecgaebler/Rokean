@@ -4,7 +4,7 @@
 #include <vector>
 using namespace std;
 
-bool LoadSyllables(std::string file_name, std::vector<std::string> syllables) {
+bool LoadSyllables(std::string file_name, std::vector<std::string> & syllables) {
     std::ifstream file(file_name.c_str());
     if(!file) {
         std:cerr << "ERROR: could not find syllables file: " << file_name << '\n';
@@ -15,12 +15,17 @@ bool LoadSyllables(std::string file_name, std::vector<std::string> syllables) {
     //read lines into vector of syllables
     std::string current_line;
     while (std::getline(file, current_line)) {
-        clog << current_line << '\n'; 
-        //if(current_line.size() > 0) syllables.push_back(current_line);
-        syllables.push_back(current_line);
+        //clog << current_line << '\n'; 
+        if(current_line.size() > 0) {
+            syllables.push_back(current_line);
+            //clog << "syllables vector size: " << syllables.size() << '\n';
+        }
+        //syllables.push_back(current_line);
     }
 
+    clog << "closing file\n";
     file.close();
+    //clog << "FINAL vector size: " << syllables.size() << '\n';
     return true;
 }
 
@@ -31,9 +36,9 @@ int main() {
     bool file_read = LoadSyllables("rokean_syllables", syllables);
 
     if(file_read) {
-        //for(std::string & line : syllables) {
-        //    std::cout << line << '\n';
-        //}
-        std:cout << syllables.size() << '\n';
+        for(std::string & line : syllables) {
+            std::cout << line << '\n';
+        }
+        clog << "syllables count: " << syllables.size() << '\n';
     }
 }
