@@ -2,15 +2,14 @@
 #include <fstream>
 #include <string>
 #include <vector>
-using namespace std;
 
 bool LoadSyllables(std::string file_name, std::vector<std::string> & syllables) {
     std::ifstream file(file_name.c_str());
     if(!file) {
-        std:cerr << "ERROR: could not find syllables file: " << file_name << '\n';
+        std::cerr << "ERROR: could not find syllables file: " << file_name << '\n';
         return false;
     }
-    clog << "Successfully opened syllables file: " << file_name << '\n'; 
+    std::clog << "Successfully opened syllables file: " << file_name << '\n'; 
 
     //read lines into vector of syllables
     std::string current_line;
@@ -23,7 +22,7 @@ bool LoadSyllables(std::string file_name, std::vector<std::string> & syllables) 
         //syllables.push_back(current_line);
     }
 
-    clog << "closing file\n";
+    std::clog << "closing file\n";
     file.close();
     //clog << "FINAL vector size: " << syllables.size() << '\n';
     return true;
@@ -39,6 +38,6 @@ int main() {
         for(std::string & line : syllables) {
             std::cout << line << '\n';
         }
-        clog << "syllables count: " << syllables.size() << '\n';
+        std::clog << "syllables count: " << syllables.size() << '\n';
     }
 }
