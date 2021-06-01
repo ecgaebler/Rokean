@@ -1,6 +1,6 @@
 /*******************
  * author: ecgaebler
- * version: 0.4
+ * version: 0.5
  * date: 2021.05.31
  * 
  * This program requires a file "syllables_with_freq.csv" with a specific
@@ -27,9 +27,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <random>
 
 
-// This function loads the lines of the syllables_with_freq file into a vector.
+// This function loads the lines of the given file into a vector.
 bool LoadLines(std::string file_name, std::vector<std::string>& lines) {
     std::ifstream file(file_name.c_str());
     if(!file) {
@@ -51,9 +52,9 @@ bool LoadLines(std::string file_name, std::vector<std::string>& lines) {
 }
 
 
-// This function takes a line from the CSV file and parses it into a string and
-// an int where the string is a syllable and the int is the relative frequency 
-// of that syllable.
+// Takes a line from the CSV file and parses it into a string and an int where 
+// the string is a syllable and the int is the relative frequency of that 
+// syllable.
 bool SplitLine(std::string& line, std::string& syllable, int& frequency) {
     std::vector<std::string> substrings;
     std::string current_substring;
@@ -134,38 +135,45 @@ int BinarySearch(std::vector<int>& nums, int target) {
 
 
 int main() {
-    std::vector<std::string> lines;
-    bool file_read = LoadLines("syllables_with_freq.csv", lines);
-    if(file_read) {
-        std::vector<std::string> syllables;
-        std::vector<int> freq_weights;
-        std::string current_syllable;
-        int current_frequency;
-        int frequency_sum = 0;
+    // Load syllables and their frequencies
+    std::vector<std::string> syl_lines;
+    bool syl_file_read = LoadLines("syllables_with_freq.csv", syl_lines);
+    if(!syl_file_read) {
+        std::cerr << "Aborting...\n";
+        return -1;
+    }
 
-        // Build vectors for syllables and frequencies
-        for(std::string & current_line : lines) {
-            if(SplitLine(current_line, current_syllable, current_frequency)) {
-                syllables.push_back(current_syllable);
-                frequency_sum += current_frequency;
-                freq_weights.push_back(current_frequency); 
-            } else {
-                std::cerr << "ERROR: could not parse line.\n";
-                return -1;
-            }
+    // Load list of words to translate
+    std::vector<std::string> dict_lines;
+    bool dict_file_read = LoadLines("dictionary.txt", dict_lines);
+    if(!dict_file_read) {
+        std::cerr << "Aborting...\n";
+        return -1;
+    }
+
+    std::vector<std::string> syllables;
+    std::vector<int> freq_weights;
+    std::string current_syllable;
+    int current_frequency;
+    int frequency_sum = 0;
+
+    // Build vectors for syllables and frequencies
+    for(std::string & current_line : syl_lines) {
+        if(SplitLine(current_line, current_syllable, current_frequency)) {
+            syllables.push_back(current_syllable);
+            frequency_sum += current_frequency;
+            freq_weights.push_back(frequency_sum); 
+        } else {
+            std::cerr << "ERROR: could not parse line.\n";
+            return -1;
         }
+    }
 
-        // Testing BinarySearch
-        std::vector<int> nums;
-        nums.push_back(3);
-        nums.push_back(7);
-        nums.push_back(13);
-        std::clog << "t=0; goal=0, actual=" << BinarySearch(nums, 0) << '\n';
-        std::clog << "t=3; goal=0, actual=" << BinarySearch(nums, 3) << '\n';
-        std::clog << "t=4; goal=1, actual=" << BinarySearch(nums, 4) << '\n';
-        std::clog << "t=7; goal=1, actual=" << BinarySearch(nums, 7) << '\n';
-        std::clog << "t=8; goal=2, actual=" << BinarySearch(nums, 8) << '\n';
-        std::clog << "t=13; goal=2, actual=" << BinarySearch(nums, 13) << '\n';
-        std::clog << "t=42; goal=2, actual=" << BinarySearch(nums, 42) << '\n';
-    } 
+    // Set up random number generator
+    std::random_device rd; 
+    std::mt19937 mt(rd());
+    // Testing the value at the end of freq_weights
+    std::clog << "freq_weights.back(): " << freq_weights.back() << '\n';
+    std::uniform_int_distribution<> rand_gen(1, freq_weights.back());
+    
 }
