@@ -1,7 +1,7 @@
 /*******************
  * author: ecgaebler
- * version: 0.5
- * date: 2021.05.31
+ * version: 0.6
+ * date: 2021.06.01
  * 
  * This program requires a file "syllables_with_freq.csv" with a specific
  * format. Each line should be in the form "<string>,<int>" where <string>
@@ -27,6 +27,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <unordered_set>
 #include <random>
 
 
@@ -89,23 +90,6 @@ bool SplitLine(std::string& line, std::string& syllable, int& frequency) {
 }
 
 
-// Randomly picks a syllable weighted by the syllable's frequency
-std::string GenerateSyllable(std::vector<std::string>& syllables, 
-                             std::vector<int>& freq_weights) {
-    if(freq_weights.size() != syllables.size()) {
-        std::cerr << "ERROR: number of syllables does not match number of "
-            "frequencies.\n";
-        return "";
-    }
-    if(freq_weights.size() < 2) {
-        std::cerr << "ERROR: Syllables list not long enough.\n";
-        return "";
-    }
-
-    // Generate random int, then do BinarySearch.
-}
-
-
 // Returns the index of the vector with the smallest value greater than target.
 int BinarySearch(std::vector<int>& nums, int target) {
     if(nums.size() == 0) {
@@ -133,6 +117,59 @@ int BinarySearch(std::vector<int>& nums, int target) {
 }
 
 
+// Randomly picks a syllable weighted by the syllable's frequency
+std::string GenerateSyllable(std::vector<std::string>& syllables, 
+                             std::vector<int>& freq_weights,
+                             int target) {
+    if(freq_weights.size() != syllables.size()) {
+        std::cerr << "ERROR: number of syllables does not match number of "
+            "frequencies.\n";
+        return "";
+    }
+    if(freq_weights.size() < 2) {
+        std::cerr << "ERROR: Syllables list not long enough.\n";
+        return "";
+    }
+
+    int index = BinarySearch(freq_weights, target);
+    if(index < 0 or index >= syllables.size()) {
+        return "";
+    }
+    return syllables.at(index);
+}
+
+
+// Generates a new word
+std::string GenerateWord(std::string& current_word,
+                         std::unordered_set<std::string>& rokean_words,
+                         std::vector<std::string>& syllables, 
+                         std::vector<int>& freq_weights,
+                         std::mt19937& generator,
+                         std::uniform_int_distribution<>& distrib) {
+    int target = distrib(generator);
+    std::string result = GenerateSyllable(syllables, freq_weights, target);
+    int max_retries = 2; // number of retries before increasing # of syllables
+    int num_retries = 0;
+    int num_syllables = 1;
+    std::unordered_set<std::string>::const_iterator location;
+    location = rokean_words.find(result);
+    
+    while(location != rokean_words.end()) {
+        if(num_retries >= max_retries) {
+            num_retries = 0;
+            ++num_syllables;
+        }
+        result = "";
+        for(int i=0; i < num_syllables; i++) {
+            target = distrib(generator);
+            std::clog << "DEBUG: target == " << target << '\n';
+            result.append(GenerateSyllable(syllables, freq_weights, target));
+        }
+    }
+
+}
+
+
 
 int main() {
     // Load syllables and their frequencies
@@ -151,14 +188,13 @@ int main() {
         return -1;
     }
 
+    // Build vectors for syllables and frequencies
     std::vector<std::string> syllables;
     std::vector<int> freq_weights;
     std::string current_syllable;
     int current_frequency;
     int frequency_sum = 0;
-
-    // Build vectors for syllables and frequencies
-    for(std::string & current_line : syl_lines) {
+    for(std::string& current_line : syl_lines) {
         if(SplitLine(current_line, current_syllable, current_frequency)) {
             syllables.push_back(current_syllable);
             frequency_sum += current_frequency;
@@ -171,9 +207,16 @@ int main() {
 
     // Set up random number generator
     std::random_device rd; 
-    std::mt19937 mt(rd());
-    // Testing the value at the end of freq_weights
-    std::clog << "freq_weights.back(): " << freq_weights.back() << '\n';
-    std::uniform_int_distribution<> rand_gen(1, freq_weights.back());
-    
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution<> distrib(1, freq_weights.back());
+
+    // Create rokean translation for each word in dict_lines
+    std::vector<std::string> rokean_dict; 
+    std::unordered_set<std::string> rokean_words = {};
+    for(std::string& current_word : dict_lines) {
+        std::string current_rokean = GenerateWord(current_word, rokean_words, 
+                                                  syllables, freq_weights,
+                                                  generator, distrib);
+    }
+
 }
