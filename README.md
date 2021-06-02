@@ -26,3 +26,4 @@ bat,492
 ```
 - The **dictionary.txt** file should have one word per line. It's okay for words to have punctuation or whitespace in them, but avoid commas; they may cause problems when exporting the final dictionary.
 
+- This program will generate one output file: **rokean_dictionary.csv**.

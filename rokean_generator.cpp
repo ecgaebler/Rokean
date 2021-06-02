@@ -1,6 +1,6 @@
 /*******************
  * author: ecgaebler
- * version: 0.7
+ * version: 1.0
  * date: 2021.06.01
  * 
  * This program requires two files in the same directory as itself:
@@ -60,9 +60,20 @@ bool LoadLines(std::string file_name, std::vector<std::string>& lines) {
 }
 
 
-// Takes a line from the CSV file and parses it into a string and an int where 
-// the string is a syllable and the int is the relative frequency of that 
-// syllable.
+/* This function loads strings from a vector into a file and saves it.
+ * Note that this will overwrite the given file if it already exists. */
+bool SaveLines(std::string file_name, std::vector<std::string>& lines) {
+    std::ofstream file(file_name.c_str(), std::ofstream::trunc);
+    for(std::string& current_line : lines) {
+        file << current_line << '\n';
+    }
+    file.close();
+}
+
+
+/* Takes a line from the CSV file and parses it into a string and an int where 
+ * the string is a syllable and the int is the relative frequency of that 
+ * syllable. */
 bool SplitLine(std::string& line, std::string& syllable, int& frequency) {
     std::vector<std::string> substrings;
     std::string current_substring;
@@ -155,25 +166,28 @@ std::string GenerateWord(std::string& current_word,
                          std::uniform_int_distribution<>& distrib) {
     int target = distrib(generator);
     std::string result = GenerateSyllable(syllables, freq_weights, target);
-    int max_retries = 2; // number of retries before increasing # of syllables
-    int num_retries = 0;
+    int max_retries = 0; // number of retries before increasing # of syllables
+    int num_retries = 1;
     int num_syllables = 1;
     std::unordered_set<std::string>::const_iterator location;
     location = rokean_words.find(result);
-
     while(location != rokean_words.end()) {
         if(num_retries >= max_retries) {
             num_retries = 0;
             ++num_syllables;
+            //std::clog << "DEBUG: num_syllables == " << num_syllables << '\n';
         }
         result = "";
         for(int i=0; i < num_syllables; i++) {
             target = distrib(generator);
-            std::clog << "DEBUG: target == " << target << '\n';
+            //std::clog << "DEBUG: target == " << target << '\n';
             result.append(GenerateSyllable(syllables, freq_weights, target));
         }
+        ++num_retries;
+        location = rokean_words.find(result);
     }
 
+    rokean_words.insert(result);
     return result;
 }
 
@@ -226,9 +240,17 @@ int main() {
                                                   syllables, freq_weights,
                                                   generator, distrib);
         std::string translation = current_word + ',' + current_rokean;
-        std::clog << translation << '\n';
+        //std::clog << "DEBUG: " << translation << '\n';
         rokean_dict.push_back(translation);
     }
-    std::clog << '\n' << rokean_dict.size() << '\n';
+    //std::clog << "DEBUG: " << rokean_dict.size() << '\n';
+    bool save_dict = SaveLines("rokean_dictionary.csv",rokean_dict);
+    if(save_dict) {
+        std::cout << "Saved dictionary to \"rokean_dictionary.csv\"\n";
+        return 1;
+    } else {
+        std::cerr << "ERROR: couldn't save to \"rokean_dictionary.csv\"\n";
+        return -1;
+    }
 
 }
