@@ -1,20 +1,27 @@
 /*******************
  * author: ecgaebler
- * version: 0.6
+ * version: 0.7
  * date: 2021.06.01
  * 
- * This program requires a file "syllables_with_freq.csv" with a specific
- * format. Each line should be in the form "<string>,<int>" where <string>
- * is a syllable, and <int> is the relative frequency of that syllable. For
- * example, the first few lines might look like this:
+ * This program requires two files in the same directory as itself:
+ * "syllables_with_freq.csv" and "dictionary.txt".
  * 
- * foo,9001
- * bar,4296
- * bat,492
+ * - "syllables_with_freq.csv" requires a specific format. Each line should be
+ *   in the form "<string>,<int>" where <string> is a syllable, and <int> is the
+ *   relative frequency of that syllable. For example, the first few lines might
+ *   look like this:
  * 
- * Note that spaces and tabs in the csv file may be treated as alphanumeric 
- * characters. Be careful how you use them or you might get whitespace in your 
- * syllables.
+ *   foo,9001
+ *   bar,4296
+ *   bat,492
+ * 
+ *   Note that spaces and tabs in the csv file may be treated as alphanumeric
+ *   characters. Be careful how you use them or you might get whitespace in your
+ *   syllables.
+ * 
+ * - For "dictionary.txt", each line of the file should be a unique word to be
+ *   translated. It's okay for a word to have special characters like apostrophe
+ *   or hyphen, or to have white space, but avoid using commas in this file.
  * 
  * Planned Features That I Might Add At Some Point:
  * - Program can use a file with only the syllables, and generate appropriate 
@@ -139,7 +146,7 @@ std::string GenerateSyllable(std::vector<std::string>& syllables,
 }
 
 
-// Generates a new word
+// Generates a new Rokean word by combining multiple randomly chosen syllables
 std::string GenerateWord(std::string& current_word,
                          std::unordered_set<std::string>& rokean_words,
                          std::vector<std::string>& syllables, 
@@ -153,7 +160,7 @@ std::string GenerateWord(std::string& current_word,
     int num_syllables = 1;
     std::unordered_set<std::string>::const_iterator location;
     location = rokean_words.find(result);
-    
+
     while(location != rokean_words.end()) {
         if(num_retries >= max_retries) {
             num_retries = 0;
@@ -167,6 +174,7 @@ std::string GenerateWord(std::string& current_word,
         }
     }
 
+    return result;
 }
 
 
@@ -210,13 +218,17 @@ int main() {
     std::mt19937 generator(rd());
     std::uniform_int_distribution<> distrib(1, freq_weights.back());
 
-    // Create rokean translation for each word in dict_lines
+    // Create Rokean translation for each word in dict_lines
     std::vector<std::string> rokean_dict; 
     std::unordered_set<std::string> rokean_words = {};
     for(std::string& current_word : dict_lines) {
         std::string current_rokean = GenerateWord(current_word, rokean_words, 
                                                   syllables, freq_weights,
                                                   generator, distrib);
+        std::string translation = current_word + ',' + current_rokean;
+        std::clog << translation << '\n';
+        rokean_dict.push_back(translation);
     }
+    std::clog << '\n' << rokean_dict.size() << '\n';
 
 }

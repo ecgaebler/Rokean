@@ -24,5 +24,5 @@ foo,9001
 bar,42
 bat,492
 ```
-- The **dictionary.txt** file should have one word per line. It's okay for words to have punctuation or whitespace in them; each line is parsed as a single string anyway.
+- The **dictionary.txt** file should have one word per line. It's okay for words to have punctuation or whitespace in them, but avoid commas; they may cause problems when exporting the final dictionary.
 
